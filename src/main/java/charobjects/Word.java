@@ -33,7 +33,7 @@ public class Word implements Comparable<Word> {
             for (int i = 0; i < word.getSymbols().size(); i++) {
                 if (getSymbols().get(i) != null) {
                     if (word.getSymbols().get(i).getValue() != getSymbols().get(i).getValue()) {
-                        return word.getSymbols().get(i).getValue().compareTo(symbols.get(i).getValue());
+                        return symbols.get(i).getValue().compareTo(word.getSymbols().get(i).getValue());
                     }
                 }
             }

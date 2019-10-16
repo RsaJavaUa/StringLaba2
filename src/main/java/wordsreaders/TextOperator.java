@@ -30,18 +30,20 @@ public class TextOperator {
 
     public List<Word> wordsWithoutPunctuation() {
         List<Word> result = new ArrayList<>();
-        text.getSentences().stream().map(Sentence::getWords).forEach(result::addAll);
+        text.getSentences().stream()
+                .map(Sentence::getWords)
+                .forEach(result::addAll);
         return ignorePunctuation(result);
     }
 
     public List<Word> sortBySymbol(char symbol) {
         List<Word> words = wordsWithoutPunctuation();
         words.forEach(word -> {
-            word.getSymbols().forEach(symb -> {
-                if (symb.getValue() == symbol) {
-                    word.incrementCounter();
-                }
-            });
+            word.getSymbols().stream()
+                    .filter(symb -> symb.getValue() == symbol)
+                    .forEach(symb -> {
+                        word.incrementCounter();
+                    });
         });
         words.sort(comparator);
         words.forEach(word -> word.addSymbol(new Symbol(' ')));
@@ -50,13 +52,18 @@ public class TextOperator {
 
     private List<Word> ignorePunctuation(List<Word> listWords) {
         return listWords.stream()
-                .filter(word -> notAPunctuation.test(word)).collect(Collectors.toList());
+                .filter(word -> notPunctuation.test(word))
+                .collect(Collectors.toList());
     }
 
-    private Predicate<Word> notAPunctuation = word -> {
+    private Predicate<Word> notPunctuation = word -> {
         if (word.getSize() == 0) {
             return false;
-        } else return !(word.getSize() <= 1
-                & PatternChecker.checkPattern(word.getSymbols().get(0).getValue(), SPACES_AND_PUNCTUATION));
+        } else return notPunctuation(word);
     };
+
+    private boolean notPunctuation(Word word) {
+        return !(word.getSize() <= 1
+                & PatternChecker.checkPattern(word.getSymbols().get(0).getValue(), SPACES_AND_PUNCTUATION));
+    }
 }

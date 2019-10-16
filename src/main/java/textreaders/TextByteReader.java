@@ -18,6 +18,7 @@ public class TextByteReader extends textreaders.TextReader {
     private final static String LETTER = "\\w";
     private final static String SPACE = "[\\s|,]";
     private final static String ENDING_PUNCTUATION = "[.!?]";
+    private final static Character SPACE_CHAR = ' ';
 
     private List<Sentence> text = new ArrayList<>();
     private Sentence sentence = new Sentence();
@@ -25,42 +26,46 @@ public class TextByteReader extends textreaders.TextReader {
 
     @Override
     public TextOperator readText(String textToRead) {
-        readFromCharArray(addTechSymbolToTheEnd(textToRead.toCharArray()));
+        readFromCharArray(addTechSymbolToTheEnd(ignoreCase(textToRead).toCharArray()));
         return getTextOperator();
     }
 
     protected void saveCharacterToText(char readerOutput) {
         if (checkPattern(readerOutput, SPACE)) {
-            wordToSentence();
-            word.addSymbol(new Punctuation(readerOutput));
-            wordToSentence();
+            addWordAddToSentence(readerOutput);
         }
         if (checkPattern(readerOutput, ENDING_PUNCTUATION)) {
-            wordToSentence();
-            sentenceToText();
-            word.addSymbol(new Punctuation(readerOutput));
+            addSentenceToText(readerOutput);
         }
         if (checkPattern(readerOutput, LETTER)) {
             word.addSymbol(new Letter(readerOutput));
         }
         if (checkPattern(readerOutput, "&")) {
-            if (word.getSize() > 0 && checkPattern(lastLetterOfTheWord().getValue(), LETTER)) {
-                wordToSentence();
-            }
-            sentenceToText();
+            addLastSentenceToText();
         }
+    }
+
+    private void addLastSentenceToText() {
+        if (word.getSize() > 0 && checkPattern(lastLetterOfTheWord().getValue(), LETTER)) {
+            wordToSentence();
+        }
+        sentenceToText();
+    }
+
+    private void addSentenceToText(char readerOutput) {
+        wordToSentence();
+        sentenceToText();
+        word.addSymbol(new Punctuation(readerOutput));
+    }
+
+    private void addWordAddToSentence(char readerOutput) {
+        wordToSentence();
+        word.addSymbol(new Punctuation(readerOutput));
+        wordToSentence();
     }
 
     private Symbol lastLetterOfTheWord() {
         return word.getSymbols().get(word.getSize() - 1);
-    }
-
-    private char replaceToSpace(char spaceChar) {
-        char result = ' ';
-        if (spaceChar == ' ' || spaceChar == ',') {
-            return result;
-        }
-        return spaceChar;
     }
 
     private void sentenceToText() {
@@ -92,5 +97,9 @@ public class TextByteReader extends textreaders.TextReader {
         System.arraycopy(array, 0, result, 0, array.length);
         result[result.length - 1] = '&';
         return result;
+    }
+
+    private String ignoreCase(String string) {
+        return string.toLowerCase();
     }
 }
